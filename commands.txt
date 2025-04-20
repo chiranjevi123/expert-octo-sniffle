@@ -1,0 +1,147 @@
+py -m venv myserver
+
+myserver\Scripts\activate.bat
+
+python -m pip install Django
+
+django-admin --version
+
+django-admin startproject qr_parking(ignore this if already created)
+
+cd qr_parking
+
+django-admin startapp parking_app (ignore this if already created)
+
+py manage.py runserver
+
+py manage.py makemigrations
+
+py manage.py migrate
+
+manage.py createsuperuser
+
+-id:chiranjevi
+-password: chirunani
+-mail: chirunani000gmail.com
+
+
+http://127.0.0.1:8000/scan_qr/
+
+
+
+
+pip install qrcode[pil]  (to install qrcode)
+
+
+del db.sqlite3  # Windows - to delete db.sqlite3 and recreate i
+
+
+
+***Verify That Parking Areas Are Being Saved in the Database
+Run this in your Django shell:
+
+>python manage.py shell
+
+#Then check if parking areas exist:
+>from parking_app.models import ParkingArea
+ParkingArea.objects.all()
+
+#If this returns an empty list [], the data is not being saved.
+#If you see objects like <ParkingArea: Area1>, then the issue is with displaying the data.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib import messages
+
+def home(request):
+    return render(request, 'index.html')
+
+def services(request):
+    return render(request, 'services.html')
+
+def contact(request):
+    return render(request, 'contact.html')
+
+def register(request):
+    return render(request, 'registration.html')
+
+
+
+def register_view(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        email = request.POST["email"]
+        password = request.POST["password"]
+        confirm_password = request.POST["confirm_password"]
+
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match!")
+            return redirect("register")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken!")
+            return redirect("register")
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered!")
+            return redirect("register")
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.save()
+        messages.success(request, "Registration successful! Please login.")
+        return redirect("login")
+
+    return render(request, "register.html")
+
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST["username"]
+        password = request.POST["password"]
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, "Login successful!")
+            return redirect("dashboard")
+        else:
+            messages.error(request, "Invalid username or password.")
+            return redirect("login")
+
+    return render(request, "login.html")
+
+@login_required
+def dashboard_view(request):
+    return render(request, "dashboard.html", {"user": request.user})
+
+def logout_view(request):
+    logout(request)
+    messages.success(request, "You have been logged out.")
+    return redirect("login")
+
+
+
